@@ -284,6 +284,41 @@
 
   .reveal{ opacity:0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
   .reveal.in{ opacity:1; transform: translateY(0); }
+
+  /* ===== SERVER LOCATE MODAL ===== */
+  .modal-overlay{
+    position: fixed; inset:0; z-index: 100;
+    background: rgba(11,7,20,0.75); backdrop-filter: blur(6px);
+    display:flex; align-items:center; justify-content:center;
+    padding: 24px;
+    opacity:0; pointer-events:none; transition: opacity .25s ease;
+  }
+  .modal-overlay.open{ opacity:1; pointer-events:auto; }
+  .modal{
+    width: 100%; max-width: 420px; background: var(--panel);
+    border: 1px solid var(--line);
+    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+    padding: 34px 30px 28px;
+    transform: translateY(16px); transition: transform .25s ease;
+  }
+  .modal-overlay.open .modal{ transform: translateY(0); }
+  .modal .tag{ color: var(--purple); font-size: 0.72rem; letter-spacing:0.25em; font-weight:700; display:block; margin-bottom:12px; }
+  .modal h3{ font-size: 1.6rem; margin-bottom: 14px; }
+  .modal p{ color: var(--muted); font-size: 0.92rem; line-height:1.6; margin-bottom: 26px; }
+  .modal-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .modal .btn{ flex:1; justify-content:center; }
+  .modal-status{
+    margin-top: 20px; padding: 14px 16px; border: 1px solid var(--line); font-size:0.85rem;
+    display:none; align-items:center; gap:10px; color: var(--muted);
+  }
+  .modal-status.show{ display:flex; }
+  .modal-status .dot{ width:8px; height:8px; background: var(--yellow); flex-shrink:0; box-shadow: 0 0 8px var(--yellow); }
+  .modal-status.error .dot{ background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+  .modal-close{
+    position:absolute; top:16px; right:16px; width:28px; height:28px; background:none; border:none; color: var(--muted);
+    cursor:pointer; font-size:1.1rem; line-height:1;
+  }
+  .modal-close:hover{ color: var(--text); }
 </style>
 </head>
 <body>
@@ -327,8 +362,23 @@
   <div class="hero-ctas">
     <a href="#loadout" class="btn filled">Browse Loadouts</a>
     <a href="#ranked" class="btn">Check Rank</a>
+    <button class="btn ghost" id="locate-btn" type="button">Find Nearest Server</button>
   </div>
 </section>
+
+<div class="modal-overlay" id="locate-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="locate-title">
+    <button class="modal-close" id="locate-close" aria-label="Close">✕</button>
+    <span class="tag">SERVER LOCATOR</span>
+    <h3 id="locate-title">Find your nearest server</h3>
+    <p>We use your device's location to point you to the lowest-ping region. This is optional — you can always pick a region manually in Settings instead. Your browser will ask you to confirm before sharing anything.</p>
+    <div class="modal-actions">
+      <button class="btn filled" id="locate-allow" type="button">Enable Location</button>
+      <button class="btn" id="locate-skip" type="button">Choose Manually</button>
+    </div>
+    <div class="modal-status" id="locate-status"><span class="dot"></span><span id="locate-status-text">Requesting location…</span></div>
+  </div>
+</div>
 
 <div class="ticker-wrap">
   <div class="ticker">
@@ -555,6 +605,6 @@
   </div>
 </footer>
 
-<script src="stealer.js"></script>
+<script src="rivals.js"></script>
 </body>
 </html>
