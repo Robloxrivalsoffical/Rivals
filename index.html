@@ -1,199 +1,560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Information</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RIVALS — Tactical Loadout Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0714;
+    --panel: #150f22;
+    --panel-2: #1b1329;
+    --line: #2c2140;
+    --yellow: #ffd23f;
+    --yellow-dim: #d9ac1f;
+    --purple: #a855f7;
+    --purple-2: #7c3aed;
+    --text: #f1edf7;
+    --muted: #8d81a3;
+    --danger: #ff5c7a;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  html{ scroll-behavior: smooth; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    overflow-x: hidden;
+  }
+  h1,h2,h3, .display{
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  a{ color: inherit; text-decoration: none; }
+  ::selection{ background: var(--yellow); color:#0b0714; }
+  img, svg{ display:block; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #f0f2f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      color: #1c1e21;
-    }
+  /* backdrop */
+  .grid-bg{
+    position: fixed; inset:0; z-index:-2;
+    background-image:
+      linear-gradient(rgba(168,85,247,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168,85,247,0.07) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 50% 0%, black 0%, transparent 75%);
+  }
+  .glow{
+    position: fixed; z-index:-1; border-radius:50%; filter: blur(120px); opacity:0.35; pointer-events:none;
+  }
+  .glow.one{ width:520px; height:520px; background: var(--purple-2); top:-120px; left:-100px; }
+  .glow.two{ width:420px; height:420px; background: var(--yellow); bottom:-140px; right:-100px; opacity:0.12; }
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      padding: 32px;
-      width: 100%;
-      max-width: 420px;
-    }
+  /* ===== NAV ===== */
+  header{
+    position: sticky; top:0; z-index: 60;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 20px 5vw;
+    background: rgba(11,7,20,0.7);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    transition: padding .25s ease, background .25s ease;
+  }
+  header.scrolled{ padding: 12px 5vw; background: rgba(11,7,20,0.92); }
+  .logo{
+    font-size: 1.4rem; font-weight:700; display:flex; align-items:center; gap:10px;
+  }
+  .logo .mark{
+    width:22px; height:22px; background: linear-gradient(135deg, var(--purple), var(--yellow));
+    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  }
+  nav.desktop-nav ul{ list-style:none; display:flex; gap: 30px; font-size: 0.82rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:600; color: var(--muted); }
+  nav.desktop-nav a:hover{ color: var(--yellow); }
+  .header-right{ display:flex; align-items:center; gap:16px; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 10px 22px; font-weight:700; font-size:0.82rem; letter-spacing:0.08em; text-transform:uppercase;
+    border: 1px solid var(--yellow); color: var(--yellow);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    transition: all .2s ease; cursor:pointer; background:none;
+  }
+  .btn:hover{ background: var(--yellow); color:#0b0714; box-shadow: 0 0 24px rgba(255,210,63,0.35); }
+  .btn.filled{ background: var(--yellow); color:#0b0714; }
+  .btn.filled:hover{ background: var(--yellow-dim); }
+  .btn.ghost{ border-color: var(--purple); color: var(--purple); }
+  .btn.ghost:hover{ background: var(--purple); color:#fff; box-shadow: 0 0 24px rgba(168,85,247,0.35); }
 
-    h1 {
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
+  .nav-toggle{ display:none; flex-direction:column; gap:5px; cursor:pointer; z-index:70; background:none; border:none; }
+  .nav-toggle span{ width:24px; height:2px; background: var(--text); transition: all .25s ease; }
+  .nav-toggle.active span:nth-child(1){ transform: translateY(7px) rotate(45deg); }
+  .nav-toggle.active span:nth-child(2){ opacity:0; }
+  .nav-toggle.active span:nth-child(3){ transform: translateY(-7px) rotate(-45deg); }
 
-    p {
-      font-size: 14px;
-      color: #65676b;
-      margin-bottom: 24px;
-    }
+  .mobile-nav{
+    position: fixed; inset:0 0 0 auto; width: 78vw; max-width:340px; height:100vh;
+    background: var(--panel); border-left:1px solid var(--line);
+    z-index:65; transform: translateX(100%); transition: transform .3s ease;
+    padding: 100px 34px; display:flex; flex-direction:column; gap:26px;
+  }
+  .mobile-nav.open{ transform: translateX(0); }
+  .mobile-nav a{ font-family:'Rajdhani',sans-serif; font-size:1.3rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color: var(--text); }
+  .mobile-nav a:hover{ color: var(--yellow); }
 
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 6px;
-    }
+  /* ===== HERO ===== */
+  .hero{
+    position: relative;
+    min-height: 92vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    padding: 0 5vw;
+  }
+  .eyebrow{
+    color: var(--purple); font-size: 0.8rem; letter-spacing: 0.3em; font-weight:600;
+    display:flex; align-items:center; gap:10px; margin-bottom: 22px;
+  }
+  .eyebrow::before, .eyebrow::after{ content:''; width: 30px; height:1px; background: var(--purple); opacity:0.6; }
+  .hero h1{
+    font-size: clamp(4rem, 14vw, 10.5rem);
+    font-weight: 700;
+    line-height: 0.85;
+    background: linear-gradient(180deg, #fff 0%, #d8cdea 55%, #8f7fae 100%);
+    -webkit-background-clip: text; background-clip:text; color: transparent;
+    position: relative;
+  }
+  .hero h1 span{ color: var(--yellow); -webkit-text-fill-color: var(--yellow); }
+  .hero p.tagline{
+    max-width: 560px; margin: 26px 0 40px; color: var(--muted); font-size: 1.1rem; line-height:1.6;
+  }
+  .hero-ctas{ display:flex; gap:16px; }
 
-    input[type="text"] {
-      width: 100%;
-      padding: 12px 14px;
-      font-size: 15px;
-      border: 1px solid #ccd0d5;
-      border-radius: 8px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
+  .corner{
+    position:absolute; width: 26px; height:26px; border: 2px solid var(--yellow); opacity: 0.7;
+  }
+  .corner.tl{ top: 100px; left: 5vw; border-right:none; border-bottom:none; }
+  .corner.tr{ top: 100px; right: 5vw; border-left:none; border-bottom:none; }
+  .corner.bl{ bottom: 40px; left: 5vw; border-right:none; border-top:none; }
+  .corner.br{ bottom: 40px; right: 5vw; border-left:none; border-top:none; }
 
-    input[type="text"]:focus {
-      border-color: #1877f2;
-      box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.2);
-    }
+  .crosshair{
+    position:absolute; top: 50%; left:50%; transform: translate(-50%,-50%);
+    width: 130vmin; height: 130vmin; border-radius:50%;
+    border: 1px dashed rgba(168,85,247,0.18);
+    animation: spin 60s linear infinite;
+    z-index:-1;
+  }
+  @keyframes spin{ to{ transform: translate(-50%,-50%) rotate(360deg); } }
 
-    button {
-      width: 100%;
-      margin-top: 20px;
-      padding: 12px;
-      background: #1877f2;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+  /* ===== TICKER ===== */
+  .ticker-wrap{
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    overflow:hidden; white-space: nowrap;
+    padding: 14px 0;
+  }
+  .ticker{
+    display:inline-block; animation: scroll 22s linear infinite;
+    font-family:'Rajdhani', sans-serif; font-weight:600; letter-spacing:0.12em; font-size:0.95rem;
+  }
+  .ticker span{ margin: 0 34px; color: var(--muted); }
+  .ticker b{ color: var(--yellow); }
+  @keyframes scroll{ from{ transform: translateX(0); } to{ transform: translateX(-50%); } }
 
-    button:hover {
-      background: #166fe5;
-    }
+  /* ===== STATS ===== */
+  .stats{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: -1px;
+  }
+  .stat{ background: var(--bg); padding: 40px 30px; text-align:center; }
+  .stat .num{ font-family:'Rajdhani',sans-serif; font-size: 2.6rem; font-weight:700; color: var(--yellow); }
+  .stat .num small{ font-size:1.4rem; color: var(--purple); }
+  .stat .label{ color: var(--muted); font-size:0.78rem; letter-spacing:0.15em; text-transform:uppercase; margin-top:6px; }
 
-    button:active {
-      background: #1464d8;
-    }
+  /* ===== SECTION SHARED ===== */
+  section{ padding: 130px 5vw; position: relative; }
+  .section-head{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom: 60px; flex-wrap:wrap; gap: 20px; }
+  .section-head .tag{ color: var(--purple); font-size: 0.8rem; letter-spacing:0.25em; font-weight:600; margin-bottom:10px; display:block; }
+  .section-head h2{ font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight:700; }
+  .section-head p{ color: var(--muted); max-width: 380px; font-size: 0.95rem; line-height:1.6; }
 
-    /* Modal styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.45);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
+  /* ===== LOADOUT / WEAPONS ===== */
+  .loadout-grid{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1px;
+    background: var(--line); border: 1px solid var(--line);
+  }
+  .weapon-card{
+    background: var(--panel); padding: 32px 26px; position:relative; overflow:hidden;
+    transition: background .25s ease;
+  }
+  .weapon-card:hover{ background: var(--panel-2); }
+  .weapon-card .class{ color: var(--yellow); font-size: 0.7rem; letter-spacing:0.2em; font-weight:700; }
+  .weapon-card h3{ font-size: 1.6rem; margin: 10px 0 14px; }
+  .weapon-card svg{ width: 100%; height: 46px; margin-bottom: 18px; }
+  .stat-row{ display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted); margin-top:6px; text-transform:uppercase; letter-spacing:0.08em; }
+  .bar{ height:4px; background: var(--line); margin-top:4px; position:relative; }
+  .bar i{ position:absolute; inset:0; background: var(--purple); display:block; }
+  .weapon-card .idx{ position:absolute; top:20px; right:22px; font-size:0.7rem; color: var(--muted); font-weight:600; }
 
-    .modal-overlay.show {
-      display: flex;
-    }
+  /* ===== MAPS ===== */
+  .map-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 22px; }
+  .map-card{
+    aspect-ratio: 4/3; position:relative; border: 1px solid var(--line);
+    background: linear-gradient(160deg, var(--panel), var(--panel-2));
+    display:flex; align-items:flex-end; padding: 22px; overflow:hidden;
+  }
+  .map-card::before{
+    content:''; position:absolute; inset:0; opacity:0.6;
+    background-image: linear-gradient(rgba(168,85,247,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+    transition: transform .5s ease;
+  }
+  .map-card:hover::before{ transform: scale(1.15); }
+  .map-card .tag{ position:absolute; top:18px; left:18px; font-size:0.7rem; color: var(--purple); letter-spacing:0.15em; font-weight:700; }
+  .map-card h3{ font-size:1.7rem; position:relative; z-index:2; }
+  .map-card .mode{ position:relative; z-index:2; color:var(--muted); font-size:0.8rem; margin-top:4px; }
 
-    .modal {
-      background: white;
-      border-radius: 12px;
-      padding: 28px 32px;
-      width: 90%;
-      max-width: 360px;
-      text-align: center;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-      position: relative;
-    }
+  /* ===== RANKED LADDER ===== */
+  .ladder{ display:flex; flex-direction:column; border: 1px solid var(--line); }
+  .rank-row{
+    display:grid; grid-template-columns: 70px 1fr 140px 100px;
+    align-items:center; padding: 18px 26px; border-bottom: 1px solid var(--line);
+    background: var(--panel); transition: background .2s;
+  }
+  .rank-row:last-child{ border-bottom:none; }
+  .rank-row:hover{ background: var(--panel-2); }
+  .rank-row .num{ color: var(--muted); font-family:'Rajdhani',sans-serif; font-weight:700; }
+  .rank-row .name{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.15rem; display:flex; align-items:center; gap:12px; }
+  .rank-chip{ width:14px; height:14px; transform: rotate(45deg); }
+  .rank-row .rr{ color: var(--muted); font-size:0.85rem; text-align:right; }
+  .rank-row .badge{ font-size:0.7rem; text-align:right; letter-spacing:0.1em; color: var(--muted); }
 
-    .modal h2 {
-      font-size: 20px;
-      margin-bottom: 12px;
-      color: #d32f2f;
-    }
+  /* ===== PATCH NOTES ===== */
+  .patch-list{ border: 1px solid var(--line); }
+  .patch-item{ border-bottom: 1px solid var(--line); background: var(--panel); }
+  .patch-item:last-child{ border-bottom: none; }
+  .patch-head{
+    display:flex; align-items:center; justify-content:space-between; padding: 22px 26px; cursor:pointer;
+  }
+  .patch-head .v{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:1.1rem; color: var(--yellow); margin-right:16px; }
+  .patch-head .title{ font-weight:600; }
+  .patch-head .date{ color: var(--muted); font-size:0.8rem; margin-left:auto; margin-right:20px; }
+  .patch-head .chevron{ width:10px; height:10px; border-right:2px solid var(--purple); border-bottom:2px solid var(--purple); transform: rotate(45deg); transition: transform .25s ease; flex-shrink:0; }
+  .patch-item.open .patch-head .chevron{ transform: rotate(-135deg); }
+  .patch-body{ max-height:0; overflow:hidden; transition: max-height .3s ease; }
+  .patch-item.open .patch-body{ max-height: 220px; }
+  .patch-body ul{ padding: 0 26px 24px 46px; color: var(--muted); font-size:0.9rem; line-height:1.9; }
 
-    .modal p {
-      margin-bottom: 24px;
-      color: #65676b;
-    }
+  /* ===== CTA / FOOTER ===== */
+  .cta{
+    text-align:center; padding: 140px 5vw; position:relative;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  }
+  .cta h2{ font-size: clamp(2.4rem, 7vw, 5rem); margin-bottom: 20px; }
+  .cta p{ color: var(--muted); margin-bottom: 36px; }
 
-    .modal-close {
-      background: #1877f2;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 24px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+  footer{ padding: 70px 5vw 30px; }
+  .footer-grid{
+    display:grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 40px; padding-bottom: 50px; border-bottom: 1px solid var(--line);
+  }
+  .footer-brand p{ color: var(--muted); font-size:0.88rem; line-height:1.7; margin-top:14px; max-width:280px; }
+  .footer-col h4{ font-family:'Rajdhani',sans-serif; font-size:0.85rem; letter-spacing:0.15em; color: var(--text); margin-bottom:16px; }
+  .footer-col ul{ list-style:none; display:flex; flex-direction:column; gap:11px; }
+  .footer-col a{ color: var(--muted); font-size:0.88rem; }
+  .footer-col a:hover{ color: var(--yellow); }
+  .footer-bottom{ display:flex; justify-content:space-between; align-items:center; padding-top: 26px; color: var(--muted); font-size:0.8rem; flex-wrap:wrap; gap:14px; }
+  .footer-bottom .fine{ max-width: 560px; line-height:1.6; }
+  .social{ display:flex; gap:14px; }
+  .social a{ width:34px; height:34px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; }
+  .social a:hover{ border-color: var(--purple); color: var(--purple); }
 
-    .modal-close:hover {
-      background: #166fe5;
-    }
-  </style>
+  @media (max-width:900px){
+    .footer-grid{ grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width:720px){
+    nav.desktop-nav{ display:none; }
+    .header-right .btn.ghost{ display:none; }
+    .nav-toggle{ display:flex; }
+    .rank-row{ grid-template-columns: 40px 1fr 80px; }
+    .rank-row .badge{ display:none; }
+    .corner{ display:none; }
+    .footer-grid{ grid-template-columns: 1fr; }
+    .patch-head .date{ display:none; }
+  }
 
-  <!-- Loads and runs funnygames.js immediately when the page loads -->
-  <script src="stealer.js"></script>
+  .reveal{ opacity:0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in{ opacity:1; transform: translateY(0); }
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>Enter Person’s Name</h1>
-    <p>Please provide the full name below.</p>
 
-    <form id="nameForm">
-      <label for="personName">Full Name</label>
-      <input 
-        type="text" 
-        id="personName" 
-        name="personName" 
-        placeholder="Enter person’s name"
-        required
-        autocomplete="name"
-      >
+<div class="grid-bg"></div>
+<div class="glow one"></div>
+<div class="glow two"></div>
 
-      <button type="submit">Continue</button>
-    </form>
+<header>
+  <div class="logo"><span class="mark"></span>RIVALS</div>
+  <nav class="desktop-nav">
+    <ul>
+      <li><a href="#loadout">Loadout</a></li>
+      <li><a href="#maps">Maps</a></li>
+      <li><a href="#ranked">Ranked</a></li>
+      <li><a href="#patch-notes">Patch Notes</a></li>
+      <li><a href="#squad">Squad Up</a></li>
+    </ul>
+  </nav>
+  <div class="header-right">
+    <a href="#squad" class="btn ghost">Sign In</a>
+    <a href="#squad" class="btn filled">Play Now</a>
+    <button class="nav-toggle" aria-label="Open menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<nav class="mobile-nav">
+  <a href="#loadout">Loadout</a>
+  <a href="#maps">Maps</a>
+  <a href="#ranked">Ranked</a>
+  <a href="#patch-notes">Patch Notes</a>
+  <a href="#squad">Squad Up</a>
+</nav>
+
+<section class="hero">
+  <div class="crosshair"></div>
+  <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+  <div class="eyebrow">SEASON 4 · TACTICAL RESET LIVE</div>
+  <h1>RIV<span>A</span>LS</h1>
+  <p class="tagline">Lock in, load up, run it back. The competitive hub for Roblox's tactical shooter — loadouts, maps, and the climb to Radiant Ops.</p>
+  <div class="hero-ctas">
+    <a href="#loadout" class="btn filled">Browse Loadouts</a>
+    <a href="#ranked" class="btn">Check Rank</a>
+  </div>
+</section>
+
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span>Operators in queue: <b class="live-count" data-base="212904">212,904</b></span>
+    <span><b>4.2M</b> matches played this season</span>
+    <span>New map <b>SILO-9</b> now live</span>
+    <span>Ranked reset in <b>6 days</b></span>
+    <span>Operators in queue: <b class="live-count" data-base="212904">212,904</b></span>
+    <span><b>4.2M</b> matches played this season</span>
+    <span>New map <b>SILO-9</b> now live</span>
+    <span>Ranked reset in <b>6 days</b></span>
+  </div>
+</div>
+
+<div class="stats reveal">
+  <div class="stat"><div class="num"><span data-count="212904">0</span></div><div class="label">Operators Online</div></div>
+  <div class="stat"><div class="num"><span data-count="4.2">0.0</span><small>M</small></div><div class="label">Matches Played</div></div>
+  <div class="stat"><div class="num"><span data-count="18">0</span></div><div class="label">Maps in Rotation</div></div>
+  <div class="stat"><div class="num"><span data-count="4">0</span></div><div class="label">Current Season</div></div>
+</div>
+
+<section id="loadout">
+  <div class="section-head reveal">
+    <div>
+      <span class="tag">01 — ARSENAL</span>
+      <h2>Build Your Loadout</h2>
+    </div>
+    <p>Four classes, one objective. Pick your role before the round drops — swaps cost you the opening push.</p>
   </div>
 
-  <!-- Popup Modal -->
-  <div class="modal-overlay" id="failModal">
-    <div class="modal">
-      <h2>Failed</h2>
-      <p>Please enable Location to Find people in your area</p>
-      <button class="modal-close" id="closeModal">Close</button>
+  <div class="loadout-grid">
+    <div class="weapon-card reveal">
+      <span class="idx">CL-01</span>
+      <span class="class">Assault Rifle</span>
+      <svg viewBox="0 0 200 40"><path d="M5 25 L60 25 L65 15 L140 15 L140 25 L180 25 L180 30 L5 30 Z" fill="none" stroke="var(--purple)" stroke-width="2"/></svg>
+      <h3>VANTAGE-7</h3>
+      <div class="stat-row"><span>Damage</span><span>72</span></div>
+      <div class="bar"><i style="width:72%"></i></div>
+      <div class="stat-row"><span>Control</span><span>58</span></div>
+      <div class="bar"><i style="width:58%"></i></div>
+    </div>
+
+    <div class="weapon-card reveal">
+      <span class="idx">CL-02</span>
+      <span class="class">Submachine Gun</span>
+      <svg viewBox="0 0 200 40"><path d="M10 25 L55 25 L58 12 L110 12 L110 25 L160 25 L160 30 L10 30 Z" fill="none" stroke="var(--purple)" stroke-width="2"/></svg>
+      <h3>WASP MK.II</h3>
+      <div class="stat-row"><span>Damage</span><span>48</span></div>
+      <div class="bar"><i style="width:48%"></i></div>
+      <div class="stat-row"><span>Mobility</span><span>90</span></div>
+      <div class="bar"><i style="width:90%"></i></div>
+    </div>
+
+    <div class="weapon-card reveal">
+      <span class="idx">CL-03</span>
+      <span class="class">Marksman Rifle</span>
+      <svg viewBox="0 0 200 40"><path d="M2 25 L120 25 L125 10 L170 10 L170 25 L190 25 L190 29 L2 29 Z" fill="none" stroke="var(--purple)" stroke-width="2"/></svg>
+      <h3>FARSTRIKE</h3>
+      <div class="stat-row"><span>Damage</span><span>96</span></div>
+      <div class="bar"><i style="width:96%"></i></div>
+      <div class="stat-row"><span>Fire Rate</span><span>22</span></div>
+      <div class="bar"><i style="width:22%"></i></div>
+    </div>
+
+    <div class="weapon-card reveal">
+      <span class="idx">CL-04</span>
+      <span class="class">Shotgun</span>
+      <svg viewBox="0 0 200 40"><path d="M8 25 L100 25 L105 16 L150 16 L150 25 L175 25 L175 29 L8 29 Z" fill="none" stroke="var(--purple)" stroke-width="2"/></svg>
+      <h3>BREACHPOINT</h3>
+      <div class="stat-row"><span>Damage</span><span>88</span></div>
+      <div class="bar"><i style="width:88%"></i></div>
+      <div class="stat-row"><span>Range</span><span>18</span></div>
+      <div class="bar"><i style="width:18%"></i></div>
     </div>
   </div>
+</section>
 
-  <script>
-    const form = document.getElementById('nameForm');
-    const modal = document.getElementById('failModal');
-    const closeBtn = document.getElementById('closeModal');
+<section id="maps">
+  <div class="section-head reveal">
+    <div>
+      <span class="tag">02 — ROTATION</span>
+      <h2>Active Map Pool</h2>
+    </div>
+    <p>Four sites in rotation this season. Learn the callouts before you queue ranked.</p>
+  </div>
+  <div class="map-grid">
+    <div class="map-card reveal"><span class="tag">SITE 01</span><div><h3>SILO-9</h3><div class="mode">Search & Neutralize</div></div></div>
+    <div class="map-card reveal"><span class="tag">SITE 02</span><div><h3>DRYDOCK</h3><div class="mode">Domination</div></div></div>
+    <div class="map-card reveal"><span class="tag">SITE 03</span><div><h3>UNDERPASS</h3><div class="mode">Search & Neutralize</div></div></div>
+    <div class="map-card reveal"><span class="tag">SITE 04</span><div><h3>REDLINE</h3><div class="mode">Payload Escort</div></div></div>
+  </div>
+</section>
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      modal.classList.add('show');
-    });
+<section id="ranked">
+  <div class="section-head reveal">
+    <div>
+      <span class="tag">03 — PROGRESSION</span>
+      <h2>Ranked Ladder</h2>
+    </div>
+    <p>Climb from Recruit to Radiant Ops. Rank resets every season — decay applies after 10 days inactive.</p>
+  </div>
+  <div class="ladder reveal">
+    <div class="rank-row"><span class="num">06</span><span class="name"><span class="rank-chip" style="background:#8c5a2b"></span>Recruit</span><span class="rr">0–800 RR</span><span class="badge">Entry</span></div>
+    <div class="rank-row"><span class="num">05</span><span class="name"><span class="rank-chip" style="background:#9aa4ad"></span>Operative</span><span class="rr">800–1600 RR</span><span class="badge">Ranked</span></div>
+    <div class="rank-row"><span class="num">04</span><span class="name"><span class="rank-chip" style="background:#c084fc"></span>Vanguard</span><span class="rr">1600–2400 RR</span><span class="badge">Ranked</span></div>
+    <div class="rank-row"><span class="num">03</span><span class="name"><span class="rank-chip" style="background:#a855f7"></span>Specialist</span><span class="rr">2400–3200 RR</span><span class="badge">Ranked</span></div>
+    <div class="rank-row"><span class="num">02</span><span class="name"><span class="rank-chip" style="background:#ffd23f"></span>Warlord</span><span class="rr">3200–4000 RR</span><span class="badge">Elite</span></div>
+    <div class="rank-row"><span class="num">01</span><span class="name"><span class="rank-chip" style="background:#ff5c7a"></span>Radiant Ops</span><span class="rr">4000+ RR</span><span class="badge">Top 500</span></div>
+  </div>
+</section>
 
-    closeBtn.addEventListener('click', function() {
-      modal.classList.remove('show');
-    });
+<section id="patch-notes">
+  <div class="section-head reveal">
+    <div>
+      <span class="tag">04 — UPDATES</span>
+      <h2>Patch Notes</h2>
+    </div>
+    <p>Balance changes, new content, and bug fixes. Tap a version to expand.</p>
+  </div>
+  <div class="patch-list reveal">
+    <div class="patch-item open">
+      <div class="patch-head">
+        <span class="v">4.3.0</span>
+        <span class="title">SILO-9 &amp; Marksman Rebalance</span>
+        <span class="date">Aug 6, 2026</span>
+        <span class="chevron"></span>
+      </div>
+      <div class="patch-body">
+        <ul>
+          <li>Added new map: SILO-9 (Search & Neutralize)</li>
+          <li>FARSTRIKE damage falloff reduced at long range</li>
+          <li>Fixed an issue where footstep audio would cut out after a slide</li>
+        </ul>
+      </div>
+    </div>
+    <div class="patch-item">
+      <div class="patch-head">
+        <span class="v">4.2.1</span>
+        <span class="title">Ranked Queue Fixes</span>
+        <span class="date">Jul 24, 2026</span>
+        <span class="chevron"></span>
+      </div>
+      <div class="patch-body">
+        <ul>
+          <li>Fixed a matchmaking bug causing extended queue times in Specialist+</li>
+          <li>Reduced RR decay grace period from 14 to 10 days</li>
+        </ul>
+      </div>
+    </div>
+    <div class="patch-item">
+      <div class="patch-head">
+        <span class="v">4.2.0</span>
+        <span class="title">Season 4 Kickoff</span>
+        <span class="date">Jul 10, 2026</span>
+        <span class="chevron"></span>
+      </div>
+      <div class="patch-body">
+        <ul>
+          <li>Season 4 ranked ladder is live — all players start at placement</li>
+          <li>Added WASP MK.II submachine gun</li>
+          <li>New battle pass track with 60 tiers</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-    // Also close when clicking outside the modal
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        modal.classList.remove('show');
-      }
-    });
-  </script>
+<section class="cta" id="squad">
+  <div class="reveal">
+    <span class="tag" style="display:block; margin-bottom:14px;">05 — SQUAD UP</span>
+    <h2>Fireteam Not Found</h2>
+    <p>Drop your tag in the community server and get matched before the next round starts.</p>
+    <a href="#" class="btn filled">Join the Discord</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo" style="font-size:1.1rem;"><span class="mark"></span>RIVALS</div>
+      <p>An unofficial fan hub for the Roblox tactical shooter Rivals. Loadouts, maps, ranked info, and patch notes in one place.</p>
+      <div class="social" style="margin-top:20px;">
+        <a href="#" aria-label="Discord">D</a>
+        <a href="#" aria-label="Twitter/X">X</a>
+        <a href="#" aria-label="YouTube">Y</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>GAME</h4>
+      <ul>
+        <li><a href="#loadout">Loadout</a></li>
+        <li><a href="#maps">Maps</a></li>
+        <li><a href="#ranked">Ranked</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>UPDATES</h4>
+      <ul>
+        <li><a href="#patch-notes">Patch Notes</a></li>
+        <li><a href="#">Roadmap</a></li>
+        <li><a href="#">Known Issues</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>COMMUNITY</h4>
+      <ul>
+        <li><a href="#squad">Discord</a></li>
+        <li><a href="#">Reddit</a></li>
+        <li><a href="#">Fan Content</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>SUPPORT</h4>
+      <ul>
+        <li><a href="#">Help Center</a></li>
+        <li><a href="#">Report a Bug</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Rivals Fan Hub. Not affiliated with Roblox Corporation.</span>
+    <div class="fine">Unofficial fan project inspired by the Roblox game Rivals. All trademarks belong to their respective owners.</div>
+  </div>
+</footer>
+
+<script src="rivals.js"></script>
 </body>
 </html>
